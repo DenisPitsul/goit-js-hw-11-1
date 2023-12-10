@@ -1,12 +1,14 @@
 import { getPosts } from "./api";
-import simpleLightbox from "simplelightbox";
+import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
+import { getPostsMarkup } from "./createMarkup";
 
 
 const searchForm = document.querySelector('#search-form');
 const gallery = document.querySelector('.gallery');
 const loadMoreBtn = document.querySelector('.load-more-btn');
 const reachEndText = document.querySelector('.reach-end-text');
+const perPage = 40;
 let page = 0;
 let searchQuery = '';
 
@@ -18,65 +20,38 @@ searchForm.addEventListener('submit', e => {
     e.currentTarget.reset();
 
     getPosts(searchQuery, page)
-        .then(({hits}) => {
-            if (hits.length < 40) {
-                loadMoreBtn.style.display = 'none';
-                reachEndText.style.display = 'block';
-            } else {
-                loadMoreBtn.style.display = 'block';
-                reachEndText.style.display = 'none';
-            }
+        .then(({hits, totalHits}) => {
+            const totalPages = Math.ceil(totalHits / perPage);
+            hideShowLoadMoreBtnAndReachEndText(page >= totalPages);
             renderPosts(hits, false);
-            page += 1;
         });
 });
 
 loadMoreBtn.addEventListener('click', () => {
+    page += 1;
     getPosts(searchQuery, page)
-        .then(({hits}) => {
-            if (hits.length < 40) {
-                loadMoreBtn.style.display = 'none';
-                reachEndText.style.display = 'block';
-            } else {
-                loadMoreBtn.style.display = 'block';
-                reachEndText.style.display = 'none';
-            }
+        .then(({hits, totalHits}) => {
+            const totalPages = Math.ceil(totalHits / perPage);
+            hideShowLoadMoreBtnAndReachEndText(page >= totalPages);
             renderPosts(hits, true);
-            page += 1;
         })
 });
 
+function hideShowLoadMoreBtnAndReachEndText(isEnd) {
+    if (isEnd) {
+        loadMoreBtn.style.display = 'none';
+        reachEndText.style.display = 'block';
+    } else {
+        loadMoreBtn.style.display = 'block';
+        reachEndText.style.display = 'none';
+    }
+}
+
 function renderPosts(posts, isLoadMore) {
-    const postsMarkup = posts.map(({ webformatURL, largeImageURL, tags, likes, views, comments, downloads }) => {
-        return `
-        <div class="photo-card">
-            <a class="gallery-link" href="${largeImageURL}">
-                <img class="gallery-image" src="${webformatURL}" alt="${tags}" loading="lazy" />
-                <div class="info">
-                    <p class="info-item">
-                        <b>Likes</b>
-                        <span>${likes}</span>
-                    </p>
-                    <p class="info-item">
-                        <b>Views</b>
-                        <span>${views}</span>
-                    </p>
-                    <p class="info-item">
-                        <b>Comments</b>
-                        <span>${comments}</span>
-                    </p>
-                    <p class="info-item">
-                        <b>Downloads</b>
-                        <span>${downloads}</span>
-                    </p>
-                </div>
-            </a>
-        </div>
-        `;
-    }).join('');
+    const postsMarkup = getPostsMarkup(posts);
 
     if (isLoadMore)
-        gallery.insertAdjacentHTML('beforeend', postsMarkup)
+        gallery.insertAdjacentHTML('beforeend', postsMarkup);
     else 
         gallery.innerHTML = postsMarkup;
 

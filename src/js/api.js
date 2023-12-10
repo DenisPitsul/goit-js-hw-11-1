@@ -9,6 +9,6 @@ export async function getPosts(searchText, page) {
         page: page,
         per_page: '40'
     });
-    const response = await axios.get(`https://pixabay.com/api/?${parms}`);
-    return response.data;
+    const {data} = await axios.get(`https://pixabay.com/api/?${parms}`);
+    return data;
 }
