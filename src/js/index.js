@@ -11,6 +11,10 @@ const reachEndText = document.querySelector('.reach-end-text');
 const perPage = 40;
 let page = 0;
 let searchQuery = '';
+let simplelightbox = new SimpleLightbox('.gallery a', {
+    captionsData: 'alt',
+    captionsDelay: 250
+});
 
 searchForm.addEventListener('submit', e => {
     e.preventDefault();
@@ -55,8 +59,5 @@ function renderPosts(posts, isLoadMore) {
     else 
         gallery.innerHTML = postsMarkup;
 
-    new SimpleLightbox('.gallery a', {
-        captionsData: 'alt',
-        captionsDelay: 250
-    });
+    simplelightbox.refresh()
 }
